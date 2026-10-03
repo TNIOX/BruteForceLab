@@ -535,8 +535,9 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 
       https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
 
-  Fichier : metasploitable2-2026-10-03.ova, 1,1 Go. A decompresser puis
-  importer dans VirtualBox (Fichier > Importer un appliance). Son contenu :
+  Fichier : metasploitable2-2026-10-03.ova, 1,01 Go, archive TAR simple
+  (non compressee). VirtualBox l'importe tel quel, sans decompression
+  prealable (Fichier > Importer un appliance). Son contenu :
   Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
   WebGoat 5.3. Les identifiants figurent dans MANUEL.md, section 8.9.
 
