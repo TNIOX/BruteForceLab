@@ -1,0 +1,18 @@
+# rapports générés par bruteforce.py
+resultats/
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+
+# dictionnaires et fichiers générés par les tests
+dico_test_interactif.txt
+dico_variantes.txt
+dico_cible.txt
+brut.txt
+
+# éditeurs
+.vscode/
+.idea/
+*.swp

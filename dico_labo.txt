@@ -1,0 +1,28 @@
+# dico_labo.txt — dictionnaire de démonstration (20 mots de passe)
+#
+# Utilisé par le démarrage rapide et les exercices du manuel.
+# Format : un mot de passe par ligne. Les lignes vides et celles
+# commençant par '#' sont ignorées par l'outil.
+#
+# Le mot de passe du laboratoire, Lab2024!, se trouve en 6e position :
+# l'exercice 2 du manuel s'appuie sur ce classement.
+password
+123456
+12345678
+qwerty
+azerty
+Lab2024!
+motdepasse
+admin
+welcome
+letmein
+iloveyou
+monkey
+dragon
+sunshine
+princess
+football
+baseball
+trustno1
+starwars
+freedom

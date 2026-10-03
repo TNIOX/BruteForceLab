@@ -1,0 +1,29 @@
+# Identifiants par defaut des applications de laboratoire de Metasploitable2.
+#
+# Ce fichier n'a aucun interet sur une application reelle : il sert uniquement
+# a valider l'outillage (bruteforce.py) sur la VM de formation, en quelques
+# essais et sans charger un gros dictionnaire.
+#
+# Les mots ci-dessous sont volontairement rares : ils n'apparaissent pas dans
+# dico.txt, ce qui permet de vérifier que le dictionnaire utilisé est bien
+# celui que l'on croit.
+#
+# DVWA — Damn Vulnerable Web Application — http://IP/dvwa/login.php
+# admin / password
+password
+#
+# WordPress — http://IP/wp-login.php — admin / admin
+admin
+#
+# phpMyAdmin — port 80, chemin /phpMyAdmin/ — root / toor
+toor
+#
+# Tomcat Manager — port 8180 — tomcat / tomcat (authentification HTTP Basic)
+tomcat
+#
+# WebGoat — http://IP/webgoat/login — webgoat / webgoat
+webgoat
+#
+# Mutillidae — http://IP/mutillidae/index.php?page=login.php
+# admin / adminpass (la table accounts vit dans la base owasp10)
+adminpass
