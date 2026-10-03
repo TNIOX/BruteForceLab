@@ -195,27 +195,23 @@ Tomcat répondait. Vérifier plutôt par une vraie requête
   (le `SecurityManager` rendait toutes les pages en 500 ;
   `/etc/default/tomcat5.5` est ignoré à ce sujet). Original sauvegardé dans
   `/root/sauvegarde/init.d-tomcat5.5-avant-webgoat`.
+- **Clos le 2026-10-03 — WordPress ne dépend plus de l'IP.** Sa base ne porte
+  plus `http://192.168.1.x/wordpress` mais `http://metasploitable/wordpress`.
+  Dans la VM, `metasploitable` pointe déjà vers `127.0.1.1` via
+  `/etc/hosts`, donc le formulaire de connexion reste valide quelle que soit
+  l'IP. Reste à faire côté **hôte**, car lui ne résout pas ce nom (la Freebox
+  ne répond pas aux noms DHCP : NXDOMAIN vérifié) :
+  `sudo ./adresse_vm.sh --publier`, qui écrit l'entrée dans `/etc/hosts`.
+  Le suffixe `/wordpress` dans `siteurl` est obligatoire.
 - **Deux pièges révélés par la réimportation du 2026-10-03**, à refaire après
   chaque import d'un `.ova` neuf, parce que l'IP change (nouvelle MAC, nouveau
   bail DHCP) alors que la VM garde l'ancienne en mémoire :
-  1. **WordPress casse entièrement.** Sa table `wp_options` porte `siteurl` et
-     `home` pointant sur l'IP de l'ancienne VM, et le formulaire de connexion
-     publie cette valeur dans son `action` : l'outil suit donc le formulaire
-     et poste vers une IP morte, sans jamais voir la page. Message
-     trompeur, `No route to host` sur l'hôte de la calibration alors que la
-     cible est bonne. Remède :
-     `mysql -uroot -ptoor wordpress -e "update wp_options set
-     option_value='http://<IP>/wordpress' where option_name in ('siteurl','home');"`
-     — le suffixe `/wordpress` est obligatoire, l'oublier donne un WordPress
-     qui répond mais refuse toute connexion. Aucune autre application (DVWA,
-     Mutillidae, phpMyAdmin, TikiWiki, TWiki) ne fige d'IP : vérifié sur les
-     six pages.
-  2. **Apache ne démarre pas au premier boot**, port 80 muet alors que MySQL,
+  1. **Apache ne démarre pas au premier boot**, port 80 muet alors que MySQL,
      Tomcat et VNC répondent. `apache2ctl configtest` dit `Syntax OK` et le
      symlink `S91apache2` est bien en place. Vérifié le 2026-10-03 : **un
-     simple reboot suffit**, le boot suivant démarre Apache normalement
-     (`/etc/init.d/apache2 start` au pire, mais inutile). Tous les scénarios
-     du chapitre 8 (port 80) échouent tant que ce n'est pas fait.
+     simple reboot suffit**, le boot suivant démarre Apache normalement.
+     Tous les scénarios du chapitre 8 (port 80) échouent tant que ce n'est pas
+     fait.
 - **Écart assumé, décidé le 2026-10-02** : `PROFILS["webgoat"]` de
   `bruteforce.py` reste orienté formulaire, comme `lab_server.py` et les cinq
   tests qui en dépendent ; le laboratoire sert la version que décrit l'OWASP

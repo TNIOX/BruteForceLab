@@ -535,35 +535,40 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 
       https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
 
-  Fichier : metasploitable2-2026-10-03-v2.ova, archive TAR simple
+  Fichier : metasploitable2-2026-10-03-v3.ova, archive TAR simple
   (non compressee). VirtualBox l'importe tel quel, sans decompression
   prealable (Fichier > Importer un appliance). Son contenu :
   Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
   WebGoat 5.3. Les identifiants figurent dans MANUEL.md, section 8.9.
 
-  DEUX OPERATIONS APRES CHAQUE IMPORT
+APRES CHAQUE IMPORT
 
   VirtualBox attribue une nouvelle adresse MAC a l'import, donc un nouveau bail
-  DHCP : l'IP change. Deux choses restent alors casseees dans la VM.
+  DHCP : l'IP change. Une seule chose reste a refaire, et elle tient en une
+  commande.
 
   a) Apache ne demarre pas au premier boot, meme si sa configuration est
      valide. Un simple redemarrage suffit ; au pire, /etc/init.d/apache2 start.
      Sans cela, tout ce qui passe par le port 80 echoue.
 
-  b) WordPress garde en base l'adresse IP de l'ancienne VM, et son formulaire
-     de connexion la publie : le login part vers une IP morte et l'outil
-     affiche "No route to host" alors que la cible est bonne. A corriger :
+  b) Faire resolvre le nom de la VM par l'hote. WordPress est configure pour
+     publier "http://metasploitable/wordpress" dans son formulaire de
+     connexion, ce qui le rend insensible a l'IP : dans la VM, ce nom pointe
+     deja vers 127.0.1.1. Il reste que l'hote, lui, doit traduire ce nom en
+     adresse. Une fois par import :
 
-       mysql -uroot -ptoor wordpress -e \
-         "update wp_options set option_value='http://<IP>/wordpress' \
-          where option_name in ('siteurl','home');"
+       sudo ./adresse_vm.sh --publier
 
-     ou <IP> est l'adresse trouvee par adresse_vm.sh. Le suffixe /wordpress
-     est obligatoire : l'oublier donne un WordPress qui repond mais refuse
-     toute connexion.
+     La commande ecrit l'entree dans /etc/hosts et affiche l'IP trouvee.
+     A faire aussitot apres avoir demarre la VM pour la premiere fois.
+
+  Sans cette etape, l'attaque WordPress part vers un nom que l'hote ne
+  resout pas, et l'erreur affichee (resolution failure) ne dit pas que la
+  cible est bonne : c'est trompeur.
 
   Aucune autre application ne fige d'adresse : DVWA, Mutillidae, phpMyAdmin,
-  TikiWiki et TWiki verifiees.
+  TikiWiki et TWiki verifiees. WordPress est la seule a avoir ete configuree
+  pour dependre d'un nom.
 
   L'adresse IP de la VM est attribuee par DHCP et change : ne jamais
   l'ecrire en dur, utiliser adresse_vm.sh, qui la retrouve par l'adresse MAC

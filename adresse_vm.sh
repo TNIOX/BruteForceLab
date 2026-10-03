@@ -15,6 +15,31 @@ set -euo pipefail
 
 PORT_SONDE="${PORT_SONDE:-8180}"
 VBOX="${VBOX:-VBoxManage}"
+NOM_HOTE="${NOM_HOTE:-metasploitable}"
+
+# --publier : enregistre aussi le nom dans /etc/hosts, pour que les
+# applications qui figent une URL dans leur base (WordPress) restent
+# joignables apres un changement d'IP. Necessite les droits root.
+PUBLIER=0
+if [ "${1:-}" = "--publier" ]; then
+    PUBLIER=1
+    shift
+fi
+
+# Ecrit "<IP> <NOM_HOTE>" dans /etc/hosts, en remplacant l'ancienne entree.
+publier_dans_hosts() {
+    local tmp
+    [ "$(id -u)" -eq 0 ] || {
+        echo "adresse_vm.sh : --publier exige les droits root." >&2
+        echo "  Utiliser : sudo $0 --publier" >&2
+        exit 1
+    }
+    tmp=$(mktemp)
+    grep -vE "[[:space:]]${NOM_HOTE}([[:space:]]|\$)" /etc/hosts > "$tmp" || true
+    printf '%s %s\n' "$1" "$NOM_HOTE" >> "$tmp"
+    cat "$tmp" > /etc/hosts
+    rm -f "$tmp"
+}
 
 # Liste des MAC à chercher. Surcharge possible par MAC_VM, une ou plusieurs
 # séparées par des espaces (utile si VirtualBox n'est pas sur le PATH).
@@ -103,6 +128,11 @@ if ! sonde_ouverte "$IP"; then
     echo "adresse_vm.sh : $IP répond mais le port $PORT_SONDE est fermé." >&2
     echo "  La VM est peut-être encore en cours de démarrage, réessayer dans un instant." >&2
     exit 1
+fi
+
+if [ "$PUBLIER" -eq 1 ]; then
+    publier_dans_hosts "$IP"
+    echo "$IP  (/etc/hosts mis a jour pour $NOM_HOTE)" >&2
 fi
 
 echo "$IP"
