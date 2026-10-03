@@ -479,11 +479,11 @@ Mutillidae    /mutillidae/index.php      username      page d'accueil :
                   ?page=login.php           password       "Not Logged In"
                                            + bouton       devient "Logged In"
   WordPress     /wp-login.php              log, pwd      302 vers /wp-admin/
-  phpMyAdmin    :80/phpMyAdmin/            pma_username  302 au corps VIDE,
-                 index.php                 pma_password  puis page a cadres
+phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
+                 index.php                 pma_password  ("server version")
   WebGoat       :8180/WebGoat/attack       AUCUN champ : 200 sur la page
-                                            en-tete HTTP  d'accueil
-                                            Basic
+                                             en-tete HTTP  d'accueil
+                                             Basic
   Tomcat        :8180                      AUCUN champ : 200 sur la page
                   /manager/html              en-tete HTTP  d'accueil
                                             Basic
@@ -499,10 +499,14 @@ Mutillidae    /mutillidae/index.php      username      page d'accueil :
       visibles). Chaque essai change donc la longueur de la page. L'outil
       masque la valeur qu'il vient d'envoyer quand elle revient dans une
       affectation d'identifiant, sinon il annonce une reussite au 1er essai.
-    - PHPMYADMIN repond 302 et un corps VIDE, que la connexion reussisse ou
-      non. Rien a comparer tant qu'on n'a pas suivi la redirection : le
-      profil active donc --follow-redirects, et c'est la page atteinte qui
-      distingue "#1045 - Access denied" de l'accueil.
+    - PHPMYADMIN repondait 302 avec un corps VIDE, que la connexion reussisse
+      ou non : le profil active donc --follow-redirects, et c'est la page
+      atteinte qui distinguait "#1045 - Access denied" de l'accueil. Ce n'est
+      plus le cas sur l'image actuelle (constate le 2026-10-03) : GET
+      /phpMyAdmin/ repond 200 avec le formulaire, et le POST de connexion
+      donne 2390 o sur succes contre 3379 o en echec. Les empreintes se
+      distinguent donc sans suivre la redirection ; --follow-redirects reste
+      actif par precaution, il est inoffensif dans les deux cas.
     - PHPMYADMIN est sur le port 80 et la casse compte : /phpMyAdmin/ est
       servi, /phpmyadmin/ repond 404.
     - TOMCAT n'ecoute pas sur 8080 : ici c'est 8180 (AJP sur 8009). Tester
@@ -513,15 +517,39 @@ Mutillidae    /mutillidae/index.php      username      page d'accueil :
       authentification est celle de Tomcat. On attaque donc WebGoat exactement
       comme le Manager, avec --profil tomcat et -U webgoat. Viser
       /WebGoat/attack, pas /WebGoat/ : la racine n'a pas de fichier
-      d'accueil et repond 404.
+      d'accueil. Elle repond 401 tant qu'on n'est pas authentifie (la
+      contrainte de securite Tomcat couvre tout /WebGoat/*), puis 404 une
+      fois les identifiants fournis. L'outil compte les deux comme echec, mais
+      il ne faut pas les confondre en demonstrations.
 
   WORDPRESS et WEBGOAT repondent 404 dans l'image Metasploitable2 d'origine :
   ce sont des paquets optionnels, absents par defaut. Ils ont ete installes a
   la main sur la VM de l'atelier (voir MANUEL.md, section 8.9) ; le
   laboratoire les reproduit de toute facon.
 
-  La VM est sur un reseau prive (192.168.56.0/24 avec Vagrant) : l'outil ne
-  demande pas --i-have-authorization. Il refuserait une adresse publique.
+  IMAGE DE LA VM
+
+  L'image utilisee pour les demonstrations ci-dessous n'est pas celle
+  d'origine : WordPress et WebGoat y ont ete installes a la main. Elle est
+  telechargeable ici :
+
+      https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
+
+  Fichier : metasploitable2-2026-10-03.ova, 1,1 Go. A decompresser puis
+  importer dans VirtualBox (Fichier > Importer un appliance). Son contenu :
+  Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
+  WebGoat 5.3. Les identifiants figurent dans MANUEL.md, section 8.9.
+
+  L'adresse IP de la VM est attribuee par DHCP et change : ne jamais
+  l'ecrire en dur, utiliser adresse_vm.sh, qui la retrouve par l'adresse MAC
+  de la carte (seule chose stable) :
+
+      VM=$(./adresse_vm.sh)
+
+  Ce script ne renvoie aucune adresse de repli : introuvable, il sort en
+  erreur. Viser l'adresse d'une autre machine serait pire que de ne rien
+  lancer. La VM est sur un reseau prive : l'outil ne demande pas
+  --i-have-authorization. Il refuserait une adresse publique.
 
   --- 1. REPETER LA DEMONSTRATION HORS LIGNE (RECOMMANDE) -------------------
 
