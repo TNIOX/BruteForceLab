@@ -17,7 +17,9 @@ refuse une adresse publique, ce qui est le comportement souhaité.
 ## 2. Environnement
 
 - Python `3.14.4`, seule dépendance `requests>=2.32.5` (`requirements.txt`).
-- Pas de dépôt git ici : rien n'est versionné, les modifications sont directes.
+- Dépôt git présent depuis le 2026-10-03 : `https://github.com/TNIOX/BruteForceLab`
+  (branche `master`). Pousser après toute modification : `git add -A`,
+  `git commit`, `git push origin master`.
 - Codes de sortie de `bruteforce.py` : `0` succès, `1` erreur, `2` échec
   (dictionnaire épuisé ou erreur argparse), `130` interruption.
 

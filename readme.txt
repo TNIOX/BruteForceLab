@@ -114,7 +114,7 @@
 ================================================================================
 
   Ce sont les deux informations que la majorite des scripts oublient, et la
-  cause n°1 de l'echec d'un brute force.
+  cause numero 1 de l'echec d'un brute force.
 
   -l, --login-field      nom du champ identifiant
                          (attribut name="..." du formulaire)
@@ -279,7 +279,7 @@
 
   Cette logique est fausse : tout ce qui n'est PAS le message d'erreur est
   interprete comme une reussite. Une erreur 500 du serveur, une page de
-  maintenance, un delai dépassé, un proxy d'entreprise : l'outil annonce un
+  maintenance, un delai depasse, un proxy d'entreprise : l'outil annonce un
   mot de passe trouve alors que c'est faux.
 
   L'outil applique trois strategies, de la plus fiable a la moins fiable :
@@ -384,7 +384,7 @@
 
   1. LA LONGUEUR BAT LA COMPLEXITE. 12 caracteres aleatoires, ou une phrase de
      passe de 5 mots, resistent a un dictionnaire. Un mot de passe court et
-     compliqué, non.
+     complexe, non.
 
   2. VERROUILLER ET LIMITER LE DEBIT. Apres 5 a 10 echecs : blocage du compte ET
      limitation par adresse IP. C'est la protection la plus efficace contre le
@@ -614,7 +614,7 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
   Les identifiants voyagent dans l'en-tete Authorization, en base64 - un
   simple encodage, pas un chiffrement :
 
-      Authorization: Basic dG9tY2F0OnRvbWNhdA==   # « tomcat:tomcat »
+      Authorization: Basic dG9tY2F0OnRvbWNhdA==   # "tomcat:tomcat"
 
   L'option --basic-auth (dej incluse dans --profil tomcat) place les
   identifiants dans l'en-tete au lieu d'un corps de requete :
