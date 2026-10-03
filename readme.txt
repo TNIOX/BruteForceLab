@@ -533,13 +533,24 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
   d'origine : WordPress et WebGoat y ont ete installes a la main. Elle est
   telechargeable ici :
 
-      https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
+      https://drive.google.com/file/d/1ZazO7ziBoKr8k4tuylq_IqX1b5ET2jt6/view
 
   Fichier : metasploitable2-2026-10-03-v4.ova, archive TAR simple
-  (non compressee). VirtualBox l'importe tel quel, sans decompression
-  prealable (Fichier > Importer un appliance). Son contenu :
-  Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
-  WebGoat 5.3. Les identifiants figurent dans MANUEL.md, section 8.9.
+  (non compressee), 1 079 954 432 octets. VirtualBox l'importe tel quel,
+  sans decompression prealable (Fichier > Importer un appliance).
+  Son contenu : Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5,
+  WordPress 3.9.2, WebGoat 5.3. Les identifiants figurent dans
+  MANUEL.md, section 8.9.
+
+  Verifier le telechargement avant de l'importer, un GiB passe vite mais peut
+  s'interrompre :
+
+      sha256sum metasploitable2-2026-10-03-v4.ova
+      92ac4e8fe1294895f2885251abe60f63d34a929881e5c35059e65e50ef220335
+
+  Une empreinte differente signifie un fichier tronque ou un autre
+  fichier : l'import reussira quand meme, et l'echec n'apparaitra qu'au
+  demarrage de la VM.
 
 APRES CHAQUE IMPORT
 
