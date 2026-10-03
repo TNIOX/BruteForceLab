@@ -535,11 +535,35 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 
       https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
 
-  Fichier : metasploitable2-2026-10-03.ova, 1,01 Go, archive TAR simple
+  Fichier : metasploitable2-2026-10-03-v2.ova, archive TAR simple
   (non compressee). VirtualBox l'importe tel quel, sans decompression
   prealable (Fichier > Importer un appliance). Son contenu :
   Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
   WebGoat 5.3. Les identifiants figurent dans MANUEL.md, section 8.9.
+
+  DEUX OPERATIONS APRES CHAQUE IMPORT
+
+  VirtualBox attribue une nouvelle adresse MAC a l'import, donc un nouveau bail
+  DHCP : l'IP change. Deux choses restent alors casseees dans la VM.
+
+  a) Apache ne demarre pas au premier boot, meme si sa configuration est
+     valide. Un simple redemarrage suffit ; au pire, /etc/init.d/apache2 start.
+     Sans cela, tout ce qui passe par le port 80 echoue.
+
+  b) WordPress garde en base l'adresse IP de l'ancienne VM, et son formulaire
+     de connexion la publie : le login part vers une IP morte et l'outil
+     affiche "No route to host" alors que la cible est bonne. A corriger :
+
+       mysql -uroot -ptoor wordpress -e \
+         "update wp_options set option_value='http://<IP>/wordpress' \
+          where option_name in ('siteurl','home');"
+
+     ou <IP> est l'adresse trouvee par adresse_vm.sh. Le suffixe /wordpress
+     est obligatoire : l'oublier donne un WordPress qui repond mais refuse
+     toute connexion.
+
+  Aucune autre application ne fige d'adresse : DVWA, Mutillidae, phpMyAdmin,
+  TikiWiki et TWiki verifiees.
 
   L'adresse IP de la VM est attribuee par DHCP et change : ne jamais
   l'ecrire en dur, utiliser adresse_vm.sh, qui la retrouve par l'adresse MAC
@@ -643,19 +667,20 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 
   --- 2. SUR LA VRAIE VM ---------------------------------------------------
 
-      # 1. L'adresse de la VM (Vagrant, ou la valeur notee a l'installation)
-      ping -c1 192.168.56.4
+      # 1. L'adresse vient du script, qui interroge VirtualBox pour la MAC.
+      #    Jamais d'IP en dur : elle est attribuee par DHCP et change.
+      VM=$(./adresse_vm.sh) || exit 1
 
       # 2. Analyser le formulaire : aucune authentification n'est envoyee
-      python3 bruteforce.py --inspect -u http://192.168.56.4/dvwa/login.php
+      python3 bruteforce.py --inspect -u http://$VM/dvwa/login.php
 
       # 3. Voir la requete qui partirait, toujours sans l'envoyer
       python3 bruteforce.py --profil dvwa -U admin \
-          -u http://192.168.56.4/dvwa/login.php --dry-run
+          -u http://$VM/dvwa/login.php --dry-run
 
       # 4. L'attaque, limitee a vingt essais
       python3 bruteforce.py --profil dvwa -U admin -k 20 -d 0.5 \
-          -u http://192.168.56.4/dvwa/login.php \
+          -u http://$VM/dvwa/login.php \
           -w dico_metasploitable.txt
 
   L'etape 2 evite les mauvaises surprises : --inspect affiche les noms de

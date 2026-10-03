@@ -212,9 +212,10 @@ Tomcat répondait. Vérifier plutôt par une vraie requête
      six pages.
   2. **Apache ne démarre pas au premier boot**, port 80 muet alors que MySQL,
      Tomcat et VNC répondent. `apache2ctl configtest` dit `Syntax OK` et le
-     symlink `S91apache2` est bien en place : il faut simplement
-     `/etc/init.d/apache2 start` une fois. Tous les scénarios du chapitre 8
-     (port 80) échouent tant que ce n'est pas fait.
+     symlink `S91apache2` est bien en place. Vérifié le 2026-10-03 : **un
+     simple reboot suffit**, le boot suivant démarre Apache normalement
+     (`/etc/init.d/apache2 start` au pire, mais inutile). Tous les scénarios
+     du chapitre 8 (port 80) échouent tant que ce n'est pas fait.
 - **Écart assumé, décidé le 2026-10-02** : `PROFILS["webgoat"]` de
   `bruteforce.py` reste orienté formulaire, comme `lab_server.py` et les cinq
   tests qui en dépendent ; le laboratoire sert la version que décrit l'OWASP
