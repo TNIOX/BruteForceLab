@@ -60,7 +60,9 @@ Rien ne joint que `127.0.0.1` : aucun accès réseau requis.
 ## 5. La VM d'atelier (IP dynamique)
 
 **L'adresse IP est attribuée par DHCP et change : ne jamais la figer.** La VM
-est identifiée par sa MAC, seule chose stable :
+est identifiée par sa MAC — mais cette MAC n'est pas stable non plus, à
+l'import d'un `.ova` VirtualBox en attribue une nouvelle. `adresse_vm.sh`
+demande donc les MAC à VirtualBox lui-même, seule source de vérité :
 
 ```bash
 VM=$(./adresse_vm.sh)     # lit la table ARP, balaye le sous-réseau si besoin
@@ -68,14 +70,17 @@ VM=$(./adresse_vm.sh)     # lit la table ARP, balaye le sous-réseau si besoin
 
 `adresse_vm.sh` ne renvoie **aucune adresse de repli** : VM introuvable, il
 sort en erreur. Viser l'IP d'une autre machine serait pire que de ne rien
-lancer. Surcharges : `MAC_VM=...`, `PORT_SONDE=...` (8180 par défaut, sert de
-confirmation d'identité — un port fermé signale une VM encore en
-démarrage). Sonde rapide si la table ARP est déjà remplie, ~20 ms.
+lancer. Surcharges : `MAC_VM=...` (une ou plusieurs), `PORT_SONDE=...` (8180
+par défaut, sert de confirmation d'identité — un port fermé signale une VM
+encore en démarrage), `VBOX=...` si le binaire n'est pas dans le `PATH`. Sonde
+rapide si la table ARP est déjà remplie, ~20 ms ; ~10 s si le balayage doit
+remplir la table.
 
-La VM tourne dans VirtualBox (`metasploitable2`, MAC `08:00:27:72:74:31`),
-réseau ponté sur `wlp0s20f3`. Réseau privé, autorisation implicite. Ubuntu
-8.04, Apache 2.2.8, MySQL 5.0.51a-3ubuntu5, Tomcat 5.5, PHP 5.2.4. Accès SSH
-`msfadmin`/`msfadmin` avec `HostKeyAlgorithms=+ssh-rsa` (OpenSSH de 2008).
+La VM tourne dans VirtualBox (`metasploitable2 1`, issue de l'import du `.ova`
+du 2026-10-03, MAC `0800270770B5`), réseau ponté sur `wlp0s20f3`. Réseau privé,
+autorisation implicite. Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a-3ubuntu5,
+Tomcat 5.5, PHP 5.2.4. Accès SSH `msfadmin`/`msfadmin` avec
+`HostKeyAlgorithms=+ssh-rsa` (OpenSSH de 2008).
 
 | Cible | État |
 |---|---|
@@ -190,6 +195,26 @@ Tomcat répondait. Vérifier plutôt par une vraie requête
   (le `SecurityManager` rendait toutes les pages en 500 ;
   `/etc/default/tomcat5.5` est ignoré à ce sujet). Original sauvegardé dans
   `/root/sauvegarde/init.d-tomcat5.5-avant-webgoat`.
+- **Deux pièges révélés par la réimportation du 2026-10-03**, à refaire après
+  chaque import d'un `.ova` neuf, parce que l'IP change (nouvelle MAC, nouveau
+  bail DHCP) alors que la VM garde l'ancienne en mémoire :
+  1. **WordPress casse entièrement.** Sa table `wp_options` porte `siteurl` et
+     `home` pointant sur l'IP de l'ancienne VM, et le formulaire de connexion
+     publie cette valeur dans son `action` : l'outil suit donc le formulaire
+     et poste vers une IP morte, sans jamais voir la page. Message
+     trompeur, `No route to host` sur l'hôte de la calibration alors que la
+     cible est bonne. Remède :
+     `mysql -uroot -ptoor wordpress -e "update wp_options set
+     option_value='http://<IP>/wordpress' where option_name in ('siteurl','home');"`
+     — le suffixe `/wordpress` est obligatoire, l'oublier donne un WordPress
+     qui répond mais refuse toute connexion. Aucune autre application (DVWA,
+     Mutillidae, phpMyAdmin, TikiWiki, TWiki) ne fige d'IP : vérifié sur les
+     six pages.
+  2. **Apache ne démarre pas au premier boot**, port 80 muet alors que MySQL,
+     Tomcat et VNC répondent. `apache2ctl configtest` dit `Syntax OK` et le
+     symlink `S91apache2` est bien en place : il faut simplement
+     `/etc/init.d/apache2 start` une fois. Tous les scénarios du chapitre 8
+     (port 80) échouent tant que ce n'est pas fait.
 - **Écart assumé, décidé le 2026-10-02** : `PROFILS["webgoat"]` de
   `bruteforce.py` reste orienté formulaire, comme `lab_server.py` et les cinq
   tests qui en dépendent ; le laboratoire sert la version que décrit l'OWASP
@@ -200,7 +225,8 @@ Tomcat répondait. Vérifier plutôt par une vraie requête
 - Rien d'autre : les deux chantiers ouverts en début de session (redirection
   de la racine du labo, déplacement des harnais hors de `/tmp`) sont clos.
 - Clos le 2026-10-03 : l'IP de la VM est désormais résolue par
-  `adresse_vm.sh` (MAC `08:00:27:72:74:31`), plus aucune adresse en dur dans
+  `adresse_vm.sh`, qui lit les MAC des VMs en marche auprès de VirtualBox —
+  l'import d'un `.ova` en changeant. Plus aucune adresse en dur dans
   `AGENTS.md` ni `MANUEL.md`.
 
 ## 9. Recette express pour une démo
