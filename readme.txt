@@ -535,7 +535,7 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 
       https://drive.google.com/file/d/1sdb6pebI5dAUI139IEtLd3DdyVOgCHah/view
 
-  Fichier : metasploitable2-2026-10-03-v3.ova, archive TAR simple
+  Fichier : metasploitable2-2026-10-03-v4.ova, archive TAR simple
   (non compressee). VirtualBox l'importe tel quel, sans decompression
   prealable (Fichier > Importer un appliance). Son contenu :
   Ubuntu 8.04, Apache 2.2.8, MySQL 5.0.51a, Tomcat 5.5, WordPress 3.9.2,
@@ -544,31 +544,30 @@ phpMyAdmin    :80/phpMyAdmin/            pma_username  page d'accueil
 APRES CHAQUE IMPORT
 
   VirtualBox attribue une nouvelle adresse MAC a l'import, donc un nouveau bail
-  DHCP : l'IP change. Une seule chose reste a refaire, et elle tient en une
-  commande.
+  DHCP : l'IP change. Aucune correction n'est a faire dans la VM. Il faut
+  seulement laisser le temps au demarrage.
 
-  a) Apache ne demarre pas au premier boot, meme si sa configuration est
-     valide. Un simple redemarrage suffit ; au pire, /etc/init.d/apache2 start.
-     Sans cela, tout ce qui passe par le port 80 echoue.
+  a) Le premier boot apres un import est lent : Apache peut mettre plusieurs
+     minutes a ouvrir le port 80. Ce n'est pas une panne, la configuration est
+     valide (apache2ctl configtest dit "Syntax OK"). Attendre, ou au pire
+     rebooter, ce qui suffit toujours. MySQL et Tomcat repondent, eux, tout
+     de suite : ne pas se fier a eux pour conclure que le boot est fini.
 
-  b) Faire resolvre le nom de la VM par l'hote. WordPress est configure pour
-     publier "http://metasploitable/wordpress" dans son formulaire de
-     connexion, ce qui le rend insensible a l'IP : dans la VM, ce nom pointe
-     deja vers 127.0.1.1. Il reste que l'hote, lui, doit traduire ce nom en
-     adresse. Une fois par import :
+  b) WordPress fige l'URL de son site en base et la republie dans son
+     formulaire de connexion. Apres un changement d'IP, le formulaire visait
+     donc une adresse morte. Un script de demarrage, /etc/init.d/metasp-wp-ip,
+     recale siteurl et home sur l'adresse reellement attribuee au boot. Verifie
+     le 2026-10-03 : une adresse volontairement sabotee a ete reparee seule au
+     redemarrage suivant.
 
-       sudo ./adresse_vm.sh --publier
+  Les six applications ont donc ete validees telles quelles, sans aucune
+  intervention : DVWA, WordPress, phpMyAdmin, Mutillidae, Tomcat et WebGoat
+  trouvent leur mot de passe au bon numero d'essai.
 
-     La commande ecrit l'entree dans /etc/hosts et affiche l'IP trouvee.
-     A faire aussitot apres avoir demarre la VM pour la premiere fois.
-
-  Sans cette etape, l'attaque WordPress part vers un nom que l'hote ne
-  resout pas, et l'erreur affichee (resolution failure) ne dit pas que la
-  cible est bonne : c'est trompeur.
-
-  Aucune autre application ne fige d'adresse : DVWA, Mutillidae, phpMyAdmin,
-  TikiWiki et TWiki verifiees. WordPress est la seule a avoir ete configuree
-  pour dependre d'un nom.
+  Pour un nom lisible dans les commandes, ./adresse_vm.sh --publier ecrit
+  l'entree correspondante dans /etc/hosts. C'est un confort, pas une necessite :
+  il demande les droits root sur l'hote et n'est plus requis pour les six
+  scenarios.
 
   L'adresse IP de la VM est attribuee par DHCP et change : ne jamais
   l'ecrire en dur, utiliser adresse_vm.sh, qui la retrouve par l'adresse MAC

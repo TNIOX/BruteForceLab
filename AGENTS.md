@@ -195,23 +195,31 @@ Tomcat répondait. Vérifier plutôt par une vraie requête
   (le `SecurityManager` rendait toutes les pages en 500 ;
   `/etc/default/tomcat5.5` est ignoré à ce sujet). Original sauvegardé dans
   `/root/sauvegarde/init.d-tomcat5.5-avant-webgoat`.
-- **Clos le 2026-10-03 — WordPress ne dépend plus de l'IP.** Sa base ne porte
-  plus `http://192.168.1.x/wordpress` mais `http://metasploitable/wordpress`.
-  Dans la VM, `metasploitable` pointe déjà vers `127.0.1.1` via
-  `/etc/hosts`, donc le formulaire de connexion reste valide quelle que soit
-  l'IP. Reste à faire côté **hôte**, car lui ne résout pas ce nom (la Freebox
-  ne répond pas aux noms DHCP : NXDOMAIN vérifié) :
-  `sudo ./adresse_vm.sh --publier`, qui écrit l'entrée dans `/etc/hosts`.
-  Le suffixe `/wordpress` dans `siteurl` est obligatoire.
+- **Clos le 2026-10-03 — WordPress ne dépend plus de l'IP, et plus rien à faire
+  après un import.** Le script d'init `/etc/init.d/metasp-wp-ip`
+  (lien `S20` dans `rc2.d`) recalcule `siteurl` et `home` à partir de
+  `ip route get 1.1.1.1` au boot et les réécrit sur l'adresse attribuée :
+  `http://<IP>/wordpress`. Il boucle dix fois en attendant le DHCP et sort
+  toujours en `0`, pour ne jamais bloquer le démarrage. Testé en sabotant
+  `siteurl` avec `http://192.168.1.99/wordpress` : réparé seul au reboot
+  suivant. Les six profils ont été revalidés avec l'IP seule, sans aucune
+  modification de `/etc/hosts` sur l'hôte, tous en code de sortie `0`.
+  La variante par nom d'hôte (`http://metasploitable/wordpress`) a été
+  abandonnée : elle imposait `sudo ./adresse_vm.sh --publier` sur l'hôte, donc
+  une intervention manuelle par import, alors que le boot suffit. `--publier`
+  reste dans le script comme simple confort de lisibilité.
+- **Apache au premier boot : ce n'est pas une panne, c'est de la lenteur.**
+  Le 2026-10-03, un import affichait le port 80 muet alors que MySQL et Tomcat
+  répondaient, et `apache2ctl configtest` disait `Syntax OK` ; le diagnostic
+  « ne démarre pas au premier boot, un reboot suffit » était une inférence
+  erronée. Boot à froid reproduit ensuite : Apache ouvre le port 80 normalement,
+  et le `siteurl` est bien recalé. Un `init` script absent de syslog et un
+  port muet ne suffisent pas à conclure : **toujours contrôler l'uptime** avant
+  de conclure à un défaut. À maintenir : laisser le boot se terminer.
 - **Deux pièges révélés par la réimportation du 2026-10-03**, à refaire après
   chaque import d'un `.ova` neuf, parce que l'IP change (nouvelle MAC, nouveau
   bail DHCP) alors que la VM garde l'ancienne en mémoire :
-  1. **Apache ne démarre pas au premier boot**, port 80 muet alors que MySQL,
-     Tomcat et VNC répondent. `apache2ctl configtest` dit `Syntax OK` et le
-     symlink `S91apache2` est bien en place. Vérifié le 2026-10-03 : **un
-     simple reboot suffit**, le boot suivant démarre Apache normalement.
-     Tous les scénarios du chapitre 8 (port 80) échouent tant que ce n'est pas
-     fait.
+  1. ~~**Apache ne démarre pas au premier boot**~~ — voir la correction ci-dessus.
 - **Écart assumé, décidé le 2026-10-02** : `PROFILS["webgoat"]` de
   `bruteforce.py` reste orienté formulaire, comme `lab_server.py` et les cinq
   tests qui en dépendent ; le laboratoire sert la version que décrit l'OWASP
